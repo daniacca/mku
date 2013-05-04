@@ -17,10 +17,7 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-#
-#TODO - Testare e controllare i vari passaggi
-#TODO - Verificare cosa manca da fare a mano dopo aver eseguito il codice, se funzionante
-#
+# NOTE: the Kernel in this repository don't have the driver for USB EHCI
 
 # Boot script
 BOOTCMD="""fatload mmc 0:1 0x80000000 uImage
@@ -123,7 +120,7 @@ def board_prepare():
 	console_script = open(console_script_path,"w")
 	console_script.write(SERIAL_CONSOLE_SCRIPT)
 	console_script.close()
-	ret = subprocess.call(["sudo", "cp" , console_script_path, "bin/serial-console"])
+	ret = subprocess.call(["sudo", "cp" , console_script_path, "rootfs/bin/serial-console"])
 
 	#Cleaning
 	#rootfs_path = os.path.join(os.getcwd(), "rootfs")
@@ -142,3 +139,9 @@ def prepare_kernel_devenv():
 		sudo apt-get install %s""" % " ".join(DEPS_PACKAGES))
 		exit(1)
 	print("This process may take a while, please wait ...")
+	ret = subprocess.call(["git", "clone", "git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"])
+	os.chdir("kernel")
+	ret = subprocess.call(["git", "checkout", "master"])
+	ret = subprocess.call(["export", "ARCH=arm"])
+	ret = subprocess.call(["export", "CROSS_COMPILE=arm-linux-gnueabihf-"])
+	ret = subprocess.call(["make", "omap2plus_defconfig"])
